@@ -205,10 +205,12 @@ class PageParser:
                 # If we limit the parsing just to the section element, it fixes it
                 # Please forgive me for parsing HTML with regex
                 logger.warning(f"No footer in article - reparsing HTML within <section> element")
-                html = re.search(r'<section.+?>(.+)</section>', raw_page.html).group(1)
-                raw_page = utils.make_html_element(html=html)
-                raw_posts = raw_page.find(selection)
-                break
+                html = re.search(r'<section.+?>(.+)</section>', raw_page.html)
+                if html is not None:
+                    html = html.group(1)
+                    raw_page = utils.make_html_element(html=html)
+                    raw_posts = raw_page.find(selection)
+                    break
 
         if not raw_posts:
             logger.warning(
