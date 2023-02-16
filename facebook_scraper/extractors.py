@@ -273,7 +273,7 @@ class PostExtractor:
 
         element = self.element
 
-        story_containers = element.find(".story_body_container")  
+        story_containers = element.find(".story_body_container")
 
         has_more = self.more_url_regex.search(element.html)
         if has_more and self.full_post_html:
@@ -282,11 +282,10 @@ class PostExtractor:
                 text = self.full_post_html.find("div.msg", first=True).text
                 return {"text": text, "post_text": text}
 
-        
         texts = defaultdict(str)
 
         for container_index, container in enumerate(story_containers):
-            
+
             has_translation = self.has_translation_regex.search(container.html)
             if has_translation:
                 original = container.find('div[style="display:none"]', first=True)
@@ -300,7 +299,7 @@ class PostExtractor:
             # Separation between paragraphs
             paragraph_separator = '\n\n'
 
-            for version, content in content_versions: 
+            for version, content in content_versions:
                 post_text = []
                 shared_text = []
                 nodes = content.find('p, header, span[role=presentation]')
@@ -310,7 +309,7 @@ class PostExtractor:
                         post_text.append(content.text)
                     else:
                         shared_text.append(content.text)
-                
+
                 elif nodes:
                     ended = False
                     index_non_header = next(
@@ -336,7 +335,7 @@ class PostExtractor:
                 text = paragraph_separator.join(itertools.chain(post_text, shared_text))
                 post_text = paragraph_separator.join(post_text)
                 shared_text = paragraph_separator.join(shared_text)
-                
+
                 if version in ["original", "hidden_original"]:
                     texts["text"] += text
                     texts["post_text"] += post_text
@@ -345,7 +344,7 @@ class PostExtractor:
                     texts["translated_text"] += text
                     texts["translated_post_text"] += post_text
                     texts["translated_shared_text"] += shared_text
-            
+
         if texts:
             if texts["translated_text"]:
                 texts["original_text"] = texts["text"]
@@ -357,9 +356,6 @@ class PostExtractor:
         elif len(nodes) == 1:
             text = nodes[0].text
             return {'text': text, 'post_text': text}
-
-
-                
 
         return None
 
@@ -1466,7 +1462,10 @@ class HashtagPostExtractor(PostExtractor):
         post_id = self.extract_hashtag_post_id(element)
         if post_id:
             response = request_fn(post_id)
-            if response:
+            if (
+                response
+                and len(response.html.find('[data-ft*="top_level_post_id"]')) > 0
+            ):
                 element = response.html.find('[data-ft*="top_level_post_id"]')[0]
                 full_post_html = response.html
 
